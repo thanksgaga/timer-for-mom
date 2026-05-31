@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -v http://localhost:5000/subjects)",
+      "Bash(pkill -f \"python app.py\")"
+    ]
+  }
+}

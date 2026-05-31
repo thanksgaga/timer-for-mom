@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stillpoint — Focus, gently</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg: oklch(0.973 0.009 78);
+  --bg-2: oklch(0.962 0.012 74);
+  --surface: oklch(0.992 0.005 80);
+  --surface-2: oklch(0.957 0.012 72);
+  --surface-3: oklch(0.915 0.014 72);
+  --ink: oklch(0.34 0.022 55);
+  --ink-soft: oklch(0.50 0.020 58);
+  --ink-faint: oklch(0.64 0.018 62);
+  --line: oklch(0.905 0.013 70);
+  --line-soft: oklch(0.935 0.011 72);
+  --clay: oklch(0.66 0.11 42);
+  --clay-track: oklch(0.93 0.028 52);
+  --clay-soft: oklch(0.95 0.03 52);
+  --sage: oklch(0.66 0.062 158);
+  --sage-track: oklch(0.93 0.026 158);
+  --sage-soft: oklch(0.95 0.03 158);
+  --shadow: 0 1px 2px oklch(0.4 0.02 60 / 0.04), 0 8px 24px oklch(0.4 0.03 60 / 0.06);
+  --shadow-lg: 0 2px 6px oklch(0.4 0.02 60 / 0.06), 0 18px 50px oklch(0.4 0.03 60 / 0.12);
+  --r: 16px;
+  --serif: "Newsreader", Georgia, serif;
+  --sans: "Hanken Grotesk", system-ui, sans-serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; }
+body{
+  font-family:var(--sans);
+  background: radial-gradient(120% 90% at 12% -10%, var(--bg) 0%, var(--bg-2) 60%, var(--bg-2) 100%);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+#root{ height:100%; }
+.app{ display:flex; height:100vh; overflow:hidden; }
+button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+::selection{ background:var(--clay-soft); }
+
+/* Sidebar */
+.sidebar{
+  width:248px; flex:0 0 248px; height:100%;
+  display:flex; flex-direction:column; padding:28px 20px 22px;
+  border-right:1px solid var(--line-soft);
+  background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+}
+.brand{ display:flex; align-items:center; gap:12px; padding:4px 6px 0; }
+.brand-mark{
+  width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+  background:var(--clay); color:var(--surface);
+  box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.25);
+}
+.brand-name{ font-family:var(--serif); font-size:21px; font-weight:500; letter-spacing:-0.01em; line-height:1; }
+.brand-tag{ font-size:12px; color:var(--ink-faint); margin-top:3px; letter-spacing:0.01em; }
+.nav{ display:flex; flex-direction:column; gap:3px; margin-top:34px; }
+.nav-item{
+  display:flex; align-items:center; gap:13px;
+  padding:11px 13px; border-radius:11px;
+  color:var(--ink-soft); font-size:15px; font-weight:500;
+  transition:background .15s ease, color .15s ease;
+}
+.nav-item:hover{ background:var(--surface-2); color:var(--ink); }
+.nav-item.is-active{ background:var(--surface-2); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+.nav-item.is-active svg{ color:var(--clay); }
+.sidebar-foot{ margin-top:auto; padding:0 6px; }
+.streak-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:7px 12px; border-radius:999px; font-size:13px; color:var(--ink-soft);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line-soft);
+}
+.streak-pill b{ color:var(--ink); }
+.streak-dot{ width:8px; height:8px; border-radius:50%; background:var(--clay); box-shadow:0 0 0 3px var(--clay-soft); }
+.foot-quote{
+  font-family:var(--serif); font-style:italic; font-size:14.5px; line-height:1.45;
+  color:var(--ink-faint); margin-top:18px; letter-spacing:0.01em;
+}
+
+/* Stage */
+.stage{ flex:1; height:100%; overflow-y:auto; position:relative; }
+.screen{ max-width:880px; margin:0 auto; padding:46px 48px 64px; }
+.screen-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; }
+.screen-title{ font-family:var(--serif); font-weight:400; font-size:34px; letter-spacing:-0.015em; }
+.screen-sub{ color:var(--ink-faint); font-size:14.5px; margin-top:6px; }
+.muted{ color:var(--ink-faint); font-size:14px; }
+
+/* Timer screen */
+.timer-screen{ display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:40px; }
+.timer-head{ margin-bottom:8px; }
+.mode-tag{
+  display:inline-block; font-size:12px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--clay); padding:5px 0; white-space:nowrap; transition:color .5s ease;
+}
+.is-break .mode-tag{ color:var(--sage); }
+.timer-title{ font-family:var(--serif); font-weight:400; font-size:30px; letter-spacing:-0.01em; color:var(--ink); margin-top:2px; }
+.subject-block{ margin:24px 0 12px; }
+.subject-label{ font-size:13px; color:var(--ink-faint); margin-bottom:12px; }
+
+/* Chips */
+.chips{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; align-items:center; }
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:9px 15px; border-radius:999px; font-size:14px; font-weight:500;
+  color:var(--ink-soft); background:var(--surface);
+  box-shadow:inset 0 0 0 1px var(--line); transition:all .15s ease;
+}
+.chip:hover{ box-shadow:inset 0 0 0 1px var(--ink-faint); }
+.chip-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.chip.is-active{
+  color:var(--ink); background:var(--surface);
+  box-shadow:inset 0 0 0 1.5px var(--chip), 0 1px 4px oklch(0.4 0.03 60 / 0.06);
+}
+.chip-x{ display:inline-flex; margin-left:2px; opacity:0; color:var(--ink-faint); transition:opacity .12s; }
+.chip:hover .chip-x{ opacity:0.7; }
+.chip-x:hover{ opacity:1 !important; color:var(--clay); }
+.chip-add{ padding:9px 12px; color:var(--ink-faint); }
+.chip-add:hover{ color:var(--clay); }
+.chip-input{ padding:6px 8px 6px 14px; gap:6px; }
+.chip-input input{
+  border:none; outline:none; background:none; font:inherit;
+  font-size:14px; width:100px; color:var(--ink);
+}
+.chip-input input::placeholder{ color:var(--ink-faint); }
+.chip-input button{ display:inline-flex; align-items:center; padding:3px; border-radius:6px; color:var(--ink-soft); }
+.chip-input button:hover{ color:var(--clay); }
+
+/* Progress ring */
+.ring-wrap{ position:relative; margin:26px 0 4px; }
+.ring-svg{ display:block; }
+.ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring-time{ font-family:var(--serif); font-weight:300; font-size:76px; letter-spacing:-0.02em; line-height:1; color:var(--ink); font-variant-numeric:tabular-nums; }
+.ring-sub{ margin-top:12px; font-size:13.5px; color:var(--ink-faint); letter-spacing:0.02em; }
+
+/* Controls */
+.controls{ display:flex; gap:12px; margin-top:30px; }
+.btn{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:13px 26px; border-radius:13px; font-size:15px; font-weight:600;
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+.btn:active{ transform:translateY(1px); }
+.btn-primary{ background:var(--clay); color:var(--surface); box-shadow:0 2px 10px oklch(0.66 0.11 42 / 0.28); }
+.is-break .btn-primary{ background:var(--sage); box-shadow:0 2px 10px oklch(0.66 0.062 158 / 0.28); }
+.btn-primary:hover{ filter:brightness(1.04); }
+.btn-primary:disabled{ opacity:0.42; cursor:not-allowed; box-shadow:none; }
+.btn-ghost{ background:var(--surface); color:var(--ink-soft); box-shadow:inset 0 0 0 1px var(--line); }
+.btn-ghost:hover{ color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink-faint); }
+.encourage{
+  font-family:var(--serif); font-style:italic; font-size:18px; color:var(--ink-soft);
+  margin-top:34px; min-height:26px; letter-spacing:0.01em;
+  animation:fade .8s ease;
+}
+@keyframes fade{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:none; } }
+
+/* History */
+.filters{ display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+.seg{ display:inline-flex; background:var(--surface-2); border-radius:11px; padding:3px; box-shadow:inset 0 0 0 1px var(--line-soft); }
+.seg-btn{ padding:8px 15px; border-radius:8px; font-size:13.5px; font-weight:500; color:var(--ink-faint); transition:all .15s; }
+.seg-btn.is-active{ background:var(--surface); color:var(--ink); box-shadow:var(--shadow); }
+.filter-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+.fchip{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:7px 13px; border-radius:999px; font-size:13px; font-weight:500;
+  color:var(--ink-soft); box-shadow:inset 0 0 0 1px var(--line); transition:all .15s;
+}
+.fchip:hover{ box-shadow:inset 0 0 0 1px var(--ink-faint); }
+.fchip.is-active{ background:var(--ink); color:var(--surface); box-shadow:none; }
+.hbar-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.fchip.is-active .hbar-dot{ box-shadow:0 0 0 2px oklch(1 0 0 / 0.25); }
+
+.day-groups{ display:flex; flex-direction:column; gap:26px; }
+.day-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; padding:0 4px; }
+.day-name{ font-family:var(--serif); font-size:17px; color:var(--ink); }
+.day-count{ font-size:12.5px; color:var(--ink-faint); white-space:nowrap; }
+.session-list{ list-style:none; display:flex; flex-direction:column; gap:2px; }
+.session-row{
+  display:grid; grid-template-columns:14px 1fr auto auto 32px; align-items:center; gap:14px;
+  padding:14px 16px; border-radius:12px; background:var(--surface);
+  box-shadow:inset 0 0 0 1px var(--line-soft); transition:box-shadow .15s;
+}
+.session-row:hover{ box-shadow:inset 0 0 0 1px var(--line), var(--shadow); }
+.srow-dot{ width:10px; height:10px; border-radius:50%; }
+.srow-subject{ font-weight:600; font-size:14.5px; }
+.srow-dur{ font-size:13.5px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.srow-time{ font-size:13px; color:var(--ink-faint); font-variant-numeric:tabular-nums; }
+.srow-del{ display:grid; place-items:center; width:30px; height:30px; border-radius:8px; color:var(--ink-faint); opacity:0; transition:all .15s; }
+.session-row:hover .srow-del{ opacity:1; }
+.srow-del:hover{ background:var(--clay-soft); color:var(--clay); }
+
+.empty{ text-align:center; padding:80px 20px; color:var(--ink-faint); }
+.empty-mark{ width:60px; height:60px; border-radius:18px; margin:0 auto 18px; display:grid; place-items:center; background:var(--surface-2); color:var(--sage); box-shadow:inset 0 0 0 1px var(--line-soft); }
+.empty p{ font-family:var(--serif); font-size:17px; line-height:1.55; font-style:italic; }
+
+/* Dashboard */
+.stat-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.stat-card{
+  background:var(--surface); border-radius:var(--r); padding:22px 22px 20px;
+  box-shadow:inset 0 0 0 1px var(--line-soft), var(--shadow);
+}
+.stat-icon{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:var(--clay); background:var(--clay-soft); margin-bottom:16px; }
+.stat-num{ font-family:var(--serif); font-weight:400; font-size:42px; line-height:1; letter-spacing:-0.02em; color:var(--ink); }
+.stat-unit{ font-size:20px; color:var(--ink-faint); }
+.stat-label{ font-size:13.5px; font-weight:600; color:var(--ink-soft); margin-top:10px; }
+.stat-note{ font-size:12.5px; color:var(--ink-faint); margin-top:5px; line-height:1.4; }
+.chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.panel{ background:var(--surface); border-radius:var(--r); padding:22px 24px 24px; box-shadow:inset 0 0 0 1px var(--line-soft), var(--shadow); }
+.panel-title{ font-family:var(--serif); font-weight:500; font-size:17px; margin-bottom:20px; color:var(--ink); }
+.panel-foot{ font-size:12px; color:var(--ink-faint); margin-top:14px; text-align:center; }
+
+/* Toast */
+.toast{
+  position:fixed; left:50%; bottom:34px; transform:translateX(-50%);
+  display:flex; align-items:center; gap:14px;
+  background:var(--surface); padding:15px 20px 15px 16px; border-radius:15px;
+  box-shadow:inset 0 0 0 1px var(--line), var(--shadow-lg);
+  cursor:pointer; z-index:50; max-width:420px;
+  animation:toastIn .5s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes toastIn{ from{ opacity:0; transform:translate(-50%,16px); } to{ opacity:1; transform:translate(-50%,0); } }
+.toast-mark{ width:42px; height:42px; flex:0 0 auto; border-radius:12px; display:grid; place-items:center; background:var(--clay-soft); color:var(--clay); }
+.toast-break .toast-mark{ background:var(--sage-soft); color:var(--sage); }
+.toast-body{ flex:1; }
+.toast-title{ font-family:var(--serif); font-size:17px; color:var(--ink); }
+.toast-msg{ font-size:13px; color:var(--ink-faint); margin-top:2px; }
+
+/* Recharts overrides */
+.recharts-tooltip-wrapper{ outline:none; }
+
+/* Div-based charts (fallback + match design) */
+.hbars{ display:flex; flex-direction:column; gap:14px; }
+.hbar-row{ display:grid; grid-template-columns:88px 1fr 52px; align-items:center; gap:12px; }
+.hbar-label{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:500; color:var(--ink-soft); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.hbar-track{ height:10px; border-radius:999px; background:var(--surface-2); overflow:hidden; box-shadow:inset 0 0 0 1px var(--line-soft); }
+.hbar-fill{ height:100%; border-radius:999px; transition:width .6s cubic-bezier(.2,.7,.2,1); }
+.hbar-val{ font-size:13px; color:var(--ink-soft); text-align:right; font-variant-numeric:tabular-nums; }
+.vbars{ display:flex; align-items:flex-end; gap:8px; height:160px; }
+.vbar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; }
+.vbar-track{ flex:1; width:100%; display:flex; align-items:flex-end; }
+.vbar-fill{ width:100%; border-radius:7px 7px 3px 3px; min-height:3px; transition:height .6s cubic-bezier(.2,.7,.2,1); }
+.vbar-day{ font-size:12px; color:var(--ink-faint); }
+.vbar-day.is-today{ color:var(--clay); font-weight:700; }
+
+/* Responsive */
+@media (max-width: 760px){
+  .app{ flex-direction:column; }
+  .sidebar{ width:100%; flex:0 0 auto; height:auto; flex-direction:row; align-items:center; padding:14px 18px; border-right:none; border-bottom:1px solid var(--line-soft); }
+  .nav{ flex-direction:row; margin:0 0 0 auto; gap:2px; }
+  .nav-item span{ display:none; }
+  .sidebar-foot{ display:none; }
+  .brand-tag{ display:none; }
+  .screen{ padding:30px 20px 60px; }
+  .stat-cards{ grid-template-columns:1fr; }
+  .chart-grid{ grid-template-columns:1fr; }
+  .screen-title{ font-size:27px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+const RC = window.Recharts || null;
+const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } = RC || {};
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:5001";
+const FOCUS_SECS = 25 * 60;
+const BREAK_SECS = 5 * 60;
+const LS_TIMER = "ft.timer.v4";
+
+const SUBJECT_COLORS = [
+  "oklch(0.66 0.11 42)",    // terracotta
+  "oklch(0.66 0.060 158)",  // sage
+  "oklch(0.62 0.080 250)",  // blue
+  "oklch(0.745 0.10 78)",   // amber
+  "oklch(0.62 0.078 330)",  // plum
+  "oklch(0.65 0.105 14)",   // rose
+];
+
+const ENCOURAGEMENTS = [
+  "You showed up. That already counts.",
+  "Rest is part of the work, not a reward for it.",
+  "One gentle session at a time.",
+  "You're allowed to go slowly today.",
+  "Small focus, real progress.",
+  "This time is yours. Take it.",
+  "Be as kind to yourself as you'd be to a friend.",
+  "Caring for yourself is caring for everyone else too.",
+];
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+const api = {
+  async req(method, path, body) {
+    const res = await fetch(API_BASE + path, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  },
+  subjects: () => api.req("GET", "/subjects"),
+  addSubject: (name) => api.req("POST", "/subjects", { name }),
+  delSubject: (id) => api.req("DELETE", `/subjects/${id}`),
+  sessions: (p = {}) => api.req("GET", "/sessions?" + new URLSearchParams(p)),
+  addSession: (subject_id, duration) => api.req("POST", "/sessions", { subject_id, duration }),
+  delSession: (id) => api.req("DELETE", `/sessions/${id}`),
+  stats: () => api.req("GET", "/stats"),
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function loadLS(k) { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } }
+function saveLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+function fmt(s) {
+  s = Math.ceil(Math.max(0, s));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function subColor(subjects, id) {
+  const i = subjects.findIndex(s => s.id === id);
+  return SUBJECT_COLORS[(i < 0 ? 0 : i) % SUBJECT_COLORS.length];
+}
+
+function playChime(isFocus) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    (isFocus ? [659.25, 783.99, 1046.5] : [523.25, 659.25]).forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
+      const t = now + i * 0.16;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9); o.start(t); o.stop(t + 1);
+    });
+    setTimeout(() => ctx.close(), 1500);
+  } catch {}
+}
+
+// ─── ICON ────────────────────────────────────────────────────────────────────
+function Icon({ name, size = 20 }) {
+  const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round" };
+  const icons = {
+    timer:     <g {...p}><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 5V3M9 3h6"/></g>,
+    history:   <g {...p}><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4M12 8v4l3 2"/></g>,
+    dashboard: <g {...p}><path d="M4 13v6M10 8v11M16 11v8M21 5v14"/></g>,
+    play:      <path d="M7 5l11 7-11 7z" fill="currentColor"/>,
+    pause:     <g><rect x="7" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></g>,
+    reset:     <g {...p}><path d="M4 9a8 8 0 1 1-1.5 5"/><path d="M3 4v5h5"/></g>,
+    plus:      <g {...p}><path d="M12 5v14M5 12h14"/></g>,
+    trash:     <g {...p}><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></g>,
+    leaf:      <g {...p}><path d="M5 19c0-8 6-13 14-14 0 8-5 14-14 14z"/><path d="M5 19c3-5 6-7 10-9"/></g>,
+    check:     <g {...p}><path d="M5 12.5l4.5 4.5L19 6.5"/></g>,
+    close:     <g {...p}><path d="M6 6l12 12M18 6L6 18"/></g>,
+    sprout:    <g {...p}><path d="M12 20v-7"/><path d="M12 13c0-3-2-5-6-5 0 3 2 5 6 5z"/><path d="M12 11c0-3 2-5 5-5 0 3-2 5-5 5z"/></g>,
+  };
+  return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">{icons[name]}</svg>;
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+function Sidebar({ view, onNav, streak }) {
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="brand-mark"><Icon name="leaf" size={18} /></div>
+        <div className="brand-text">
+          <div className="brand-name">Stillpoint</div>
+          <div className="brand-tag">focus, gently</div>
+        </div>
+      </div>
+      <nav className="nav">
+        {[["timer","Timer","timer"],["history","History","history"],["dashboard","Dashboard","dashboard"]].map(([id,label,icon]) => (
+          <button key={id} className={"nav-item" + (view === id ? " is-active" : "")} onClick={() => onNav(id)}>
+            <Icon name={icon} size={19} /><span>{label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-foot">
+        <div className="streak-pill">
+          <span className="streak-dot" />
+          <span><b>{streak}</b>-day streak</span>
+        </div>
+        <p className="foot-quote">Love yourself first,<br />before you help others.</p>
+      </div>
+    </aside>
+  );
+}
+
+// ─── PROGRESS RING ────────────────────────────────────────────────────────────
+function ProgressRing({ progress, size = 336, stroke = 11, color, track, children }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - Math.max(0, Math.min(1, progress)));
+  return (
+    <div className="ring-wrap" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="ring-svg">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none"
+          stroke={color} strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={offset}
+          transform={`rotate(-90 ${size/2} ${size/2})`}
+          style={{ transition: "stroke-dashoffset 0.4s linear, stroke 0.5s ease" }}
+        />
+      </svg>
+      <div className="ring-center">{children}</div>
+    </div>
+  );
+}
+
+// ─── SUBJECT PICKER ───────────────────────────────────────────────────────────
+function SubjectPicker({ subjects, selectedId, onSelect, onAdd, onDelete, disabled }) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+
+  const submit = () => {
+    if (name.trim()) onAdd(name.trim());
+    setName("");
+    setAdding(false);
+  };
+
+  return (
+    <div className="subject-block">
+      <div className="subject-label">What are you putting 25 minutes toward?</div>
+      <div className="chips">
+        {subjects.map((s, i) => {
+          const color = SUBJECT_COLORS[i % SUBJECT_COLORS.length];
+          const active = s.id === selectedId;
+          return (
+            <button key={s.id} className={"chip" + (active ? " is-active" : "")}
+              style={{ "--chip": color }} onClick={() => !disabled && onSelect(s.id)} disabled={disabled}>
+              <span className="chip-dot" style={{ background: color }} />
+              {s.name}
+              {!disabled && (
+                <span className="chip-x" onClick={e => { e.stopPropagation(); onDelete(s.id); }}>
+                  <Icon name="close" size={12} />
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {adding ? (
+          <span className="chip chip-input">
+            <input autoFocus value={name} onChange={e => setName(e.target.value)}
+              placeholder="Subject…"
+              onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") { setAdding(false); setName(""); } }} />
+            <button onClick={submit}><Icon name="check" size={13} /></button>
+          </span>
+        ) : (
+          <button className="chip chip-add" onClick={() => setAdding(true)} disabled={disabled} title="Add subject">
+            <Icon name="plus" size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── TIMER VIEW ───────────────────────────────────────────────────────────────
+function TimerView({ mode, status, secondsLeft, totalSeconds, subjects, selectedId, encouragement,
+    onStart, onPause, onResume, onReset, onSelect, onAdd, onDelete }) {
+  const isBreak = mode === "break";
+  const progress = totalSeconds ? (totalSeconds - Math.ceil(secondsLeft)) / totalSeconds : 0;
+  const idx = subjects.findIndex(s => s.id === selectedId);
+  const color = isBreak ? "var(--sage)" : (idx >= 0 ? SUBJECT_COLORS[idx % SUBJECT_COLORS.length] : "var(--clay)");
+  const track = isBreak ? "var(--sage-track)" : "var(--clay-track)";
+  const sel = subjects.find(s => s.id === selectedId);
+  const idle = status === "idle", running = status === "running";
+
+  return (
+    <div className={"screen timer-screen" + (isBreak ? " is-break" : "")}>
+      <div className="timer-head">
+        <span className="mode-tag">{isBreak ? "Break" : "Focus session"}</span>
+        <h1 className="timer-title">{isBreak ? "Time to soften" : (idle ? "Ready when you are" : "You're focusing")}</h1>
+      </div>
+
+      {!isBreak && (
+        <SubjectPicker subjects={subjects} selectedId={selectedId}
+          onSelect={onSelect} onAdd={onAdd} onDelete={onDelete}
+          disabled={running || status === "paused"} />
+      )}
+
+      <ProgressRing progress={progress} color={color} track={track}>
+        <div className="ring-time">{fmt(secondsLeft)}</div>
+        <div className="ring-sub">{isBreak ? "until you return" : (sel ? sel.name : "pick a subject")}</div>
+      </ProgressRing>
+
+      <div className="controls">
+        {idle && (
+          <button className="btn btn-primary" onClick={onStart} disabled={!isBreak && !selectedId}>
+            <Icon name="play" size={18} /> Begin
+          </button>
+        )}
+        {running && <button className="btn btn-primary" onClick={onPause}><Icon name="pause" size={18} /> Pause</button>}
+        {status === "paused" && <button className="btn btn-primary" onClick={onResume}><Icon name="play" size={18} /> Resume</button>}
+        {!idle && <button className="btn btn-ghost" onClick={onReset}><Icon name="reset" size={17} /> Reset</button>}
+      </div>
+
+      <p className="encourage" key={encouragement}>{encouragement}</p>
+    </div>
+  );
+}
+
+// ─── HISTORY VIEW ─────────────────────────────────────────────────────────────
+function HistoryView({ reloadKey, subjects }) {
+  const [range, setRange] = useState("week");
+  const [subFilter, setSubFilter] = useState("all");
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const p = {};
+    if (subFilter !== "all") p.subject_id = subFilter;
+    if (range !== "all") p.range = range;
+    api.sessions(p)
+      .then(data => { setSessions(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [reloadKey, range, subFilter]);
+
+  const del = (id) => {
+    api.delSession(id)
+      .then(() => setSessions(ss => ss.filter(s => s.id !== id)))
+      .catch(() => {});
+  };
+
+  const groups = useMemo(() => {
+    const map = {};
+    sessions.forEach(s => {
+      const key = new Date(s.created_at).toDateString();
+      (map[key] = map[key] || []).push(s);
+    });
+    return Object.entries(map)
+      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+      .map(([k, items]) => ({ k, items: items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) }));
+  }, [sessions]);
+
+  const totalMin = sessions.reduce((m, s) => m + s.duration, 0);
+
+  const dayLabel = key => {
+    const d = new Date(key), today = new Date(), yest = new Date(today);
+    today.setHours(0, 0, 0, 0); yest.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return "Today";
+    if (d.toDateString() === yest.toDateString()) return "Yesterday";
+    return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  };
+
+  const timeLbl = iso => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+  return (
+    <div className="screen">
+      <header className="screen-head">
+        <div>
+          <h1 className="screen-title">Your sessions</h1>
+          <p className="screen-sub">{sessions.length} sessions · {Math.round(totalMin / 60 * 10) / 10}h of focus</p>
+        </div>
+      </header>
+
+      <div className="filters">
+        <div className="seg">
+          {[["week","This week"],["month","This month"],["all","All time"]].map(([v, l]) => (
+            <button key={v} className={"seg-btn" + (range === v ? " is-active" : "")} onClick={() => setRange(v)}>{l}</button>
+          ))}
+        </div>
+        <div className="filter-chips">
+          <button className={"fchip" + (subFilter === "all" ? " is-active" : "")} onClick={() => setSubFilter("all")}>All</button>
+          {subjects.map((s, i) => (
+            <button key={s.id} className={"fchip" + (subFilter === s.id ? " is-active" : "")} onClick={() => setSubFilter(s.id)}>
+              <span className="hbar-dot" style={{ background: SUBJECT_COLORS[i % SUBJECT_COLORS.length] }} />
+              {s.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="muted" style={{ textAlign: "center", paddingTop: 48 }}>Loading…</div>
+      ) : groups.length === 0 ? (
+        <div className="empty">
+          <div className="empty-mark"><Icon name="leaf" size={26} /></div>
+          <p>No sessions here yet.<br />When you focus, they'll gather here — gently.</p>
+        </div>
+      ) : (
+        <div className="day-groups">
+          {groups.map(g => (
+            <section key={g.k}>
+              <div className="day-head">
+                <span className="day-name">{dayLabel(g.k)}</span>
+                <span className="day-count">{g.items.length} · {g.items.reduce((m, s) => m + s.duration, 0)} min</span>
+              </div>
+              <ul className="session-list">
+                {g.items.map(s => (
+                  <li className="session-row" key={s.id}>
+                    <span className="srow-dot" style={{ background: subColor(subjects, s.subject_id) }} />
+                    <span className="srow-subject">{s.subject_name || "Focus"}</span>
+                    <span className="srow-dur">{s.duration} min</span>
+                    <span className="srow-time">{timeLbl(s.created_at)}</span>
+                    <button className="srow-del" onClick={() => del(s.id)} title="Delete session">
+                      <Icon name="trash" size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CHART HELPERS ────────────────────────────────────────────────────────────
+function HBarChart({ data }) {
+  const max = Math.max(1, ...data.map(d => d.minutes));
+  const label = m => m >= 60 ? Math.round(m / 60 * 10) / 10 + "h" : m + "m";
+  return (
+    <div className="hbars">
+      {data.map((d, i) => (
+        <div className="hbar-row" key={i}>
+          <div className="hbar-label">
+            <span className="hbar-dot" style={{ background: d.color }} />{d.name}
+          </div>
+          <div className="hbar-track">
+            <div className="hbar-fill" style={{ width: (d.minutes / max * 100) + "%", background: d.color }} />
+          </div>
+          <div className="hbar-val">{label(d.minutes)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VBarChart({ data, today }) {
+  const max = Math.max(1, ...data.map(d => d.minutes));
+  return (
+    <div className="vbars">
+      {data.map((d, i) => (
+        <div className="vbar-col" key={i}>
+          <div className="vbar-track">
+            <div className="vbar-fill"
+              title={d.minutes + " min"}
+              style={{ height: (d.minutes / max * 100) + "%", background: d.name === today ? "var(--clay)" : "var(--surface-3)" }} />
+          </div>
+          <div className={"vbar-day" + (d.name === today ? " is-today" : "")}>{d.name}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── RECHARTS VERSIONS (used when Recharts CDN loaded successfully) ────────────
+function HBarChartRC({ data }) {
+  return (
+    <div style={{ height: Math.max(120, data.length * 52) }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} layout="vertical" margin={{ left: 0, right: 32, top: 4, bottom: 4 }}>
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fill: "var(--ink-soft)" }} tickLine={false} axisLine={false} width={80} />
+          <Tooltip formatter={v => [v >= 60 ? Math.round(v / 60 * 10) / 10 + "h" : v + " min", "Focus"]}
+            contentStyle={{ borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface)", fontSize: 13 }}
+            cursor={{ fill: "var(--surface-2)" }} />
+          <Bar dataKey="minutes" radius={[0, 7, 7, 0]} maxBarSize={14}>
+            {data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function VBarChartRC({ data, today }) {
+  const CustomXTick = ({ x, y, payload }) => (
+    <text x={x} y={y + 14} textAnchor="middle"
+      fill={payload.value === today ? "var(--clay)" : "var(--ink-faint)"}
+      fontSize={12} fontWeight={payload.value === today ? 700 : 400}>
+      {payload.value}
+    </text>
+  );
+  return (
+    <div style={{ height: 180 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ left: 4, right: 4, top: 8, bottom: 0 }}>
+          <XAxis dataKey="name" tick={<CustomXTick />} tickLine={false} axisLine={false} />
+          <YAxis hide />
+          <Tooltip formatter={v => [v + " min", "Focus"]}
+            contentStyle={{ borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface)", fontSize: 13 }}
+            cursor={{ fill: "var(--surface-2)" }} />
+          <Bar dataKey="minutes" radius={[6, 6, 3, 3]} maxBarSize={40}>
+            {data.map((entry, i) => <Cell key={i} fill={entry.name === today ? "var(--clay)" : "var(--surface-3)"} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ─── DASHBOARD VIEW ───────────────────────────────────────────────────────────
+function DashboardView({ reloadKey }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.stats()
+      .then(data => { setStats(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [reloadKey]);
+
+  if (loading) return (
+    <div className="screen">
+      <p className="muted" style={{ textAlign: "center", paddingTop: 60 }}>Loading…</p>
+    </div>
+  );
+  if (!stats) return (
+    <div className="screen">
+      <p className="muted" style={{ textAlign: "center", paddingTop: 60 }}>
+        Could not reach server. Make sure Flask is running at {API_BASE}.
+      </p>
+    </div>
+  );
+
+  const wds = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const today = wds[(new Date().getDay() + 6) % 7];
+  const weekData = wds.map(d => ({ name: d, minutes: (stats.by_weekday || {})[d] || 0 }));
+  const subData = (stats.by_subject || []).map((s, i) => ({ ...s, color: SUBJECT_COLORS[i % SUBJECT_COLORS.length] }));
+
+  // Use Recharts if available, otherwise fall back to custom div charts
+  const useRC = RC && BarChart && ResponsiveContainer;
+
+  return (
+    <div className="screen">
+      <header className="screen-head">
+        <div>
+          <h1 className="screen-title">How you've been</h1>
+          <p className="screen-sub">A quiet look at your focus — no pressure, just patterns.</p>
+        </div>
+      </header>
+
+      <div className="stat-cards">
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="sprout" size={20} /></div>
+          <div className="stat-num">{stats.streak}<span className="stat-unit"> days</span></div>
+          <div className="stat-label">Current streak</div>
+          <div className="stat-note">{stats.streak >= 3 ? "You keep coming back. That's strength." : "Every day is a fresh start."}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="timer" size={20} /></div>
+          <div className="stat-num">{stats.total_hours}<span className="stat-unit"> h</span></div>
+          <div className="stat-label">Total focus time</div>
+          <div className="stat-note">All the small moments, added up.</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon"><Icon name="check" size={20} /></div>
+          <div className="stat-num">{stats.sessions_this_week}</div>
+          <div className="stat-label">Sessions this week</div>
+          <div className="stat-note">Look what you made room for.</div>
+        </div>
+      </div>
+
+      <div className="chart-grid">
+        <section className="panel">
+          <h2 className="panel-title">Focus by subject</h2>
+          {subData.length === 0 ? (
+            <p className="muted">No data yet — complete a focus session to see stats.</p>
+          ) : useRC ? (
+            <HBarChartRC data={subData} />
+          ) : (
+            <HBarChart data={subData} />
+          )}
+        </section>
+
+        <section className="panel">
+          <h2 className="panel-title">This week's rhythm</h2>
+          {useRC ? (
+            <VBarChartRC data={weekData} today={today} />
+          ) : (
+            <VBarChart data={weekData} today={today} />
+          )}
+          <p className="panel-foot">Minutes focused, Monday to Sunday</p>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ──────────────────────────────────────────────────────────────────────
+function App() {
+  // Restore timer state from localStorage
+  const p0 = loadLS(LS_TIMER);
+
+  const [view, setView] = useState("timer");
+  const [subjects, setSubjects] = useState([]);
+  const [mode, setMode] = useState(p0.mode || "focus");
+  const [status, setStatus] = useState(
+    p0.status === "running" || p0.status === "paused" ? p0.status : "idle"
+  );
+  const [secondsLeft, setSecondsLeft] = useState(() => {
+    if (!p0.secondsLeft) return FOCUS_SECS;
+    if (p0.status === "running" && p0.deadline) return Math.max(0, (p0.deadline - Date.now()) / 1000);
+    return p0.secondsLeft;
+  });
+  const [selId, setSelId] = useState(p0.selectedId || null);
+  const [toast, setToast] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [encourage, setEncourage] = useState(pick(ENCOURAGEMENTS));
+  const [streak, setStreak] = useState(0);
+
+  const deadlineRef = useRef(p0.status === "running" ? p0.deadline : null);
+  const doneRef = useRef(false);
+  const total = mode === "break" ? BREAK_SECS : FOCUS_SECS;
+
+  // Load subjects from API; fall back to seeded defaults if server is down
+  useEffect(() => {
+    api.subjects().then(setSubjects).catch(() => {
+      setSubjects([
+        { id: 1, name: "Work" },
+        { id: 2, name: "Reading" },
+        { id: 3, name: "Exercise" },
+        { id: 4, name: "Study" },
+      ]);
+    });
+  }, []);
+
+  // Refresh streak whenever sessions change
+  useEffect(() => {
+    api.stats().then(d => setStreak(d.streak)).catch(() => {});
+  }, [reloadKey]);
+
+  // Persist timer state
+  useEffect(() => {
+    saveLS(LS_TIMER, { mode, status, secondsLeft, selectedId: selId, deadline: deadlineRef.current });
+  }, [mode, status, secondsLeft, selId]);
+
+  // Handle timer completion
+  const complete = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    playChime(mode === "focus");
+
+    if (mode === "focus") {
+      if (selId) {
+        api.addSession(selId, 25)
+          .then(() => setReloadKey(k => k + 1))
+          .catch(() => {});
+      }
+      setMode("break");
+      setSecondsLeft(BREAK_SECS);
+      deadlineRef.current = Date.now() + BREAK_SECS * 1000;
+      setStatus("running");
+      setToast({ kind: "focus", title: "Focus complete!", msg: "Great work — 5-minute break starting now." });
+      setEncourage("Rest is part of the work. You earned this.");
+    } else {
+      setMode("focus");
+      setSecondsLeft(FOCUS_SECS);
+      setStatus("idle");
+      deadlineRef.current = null;
+      setToast({ kind: "break", title: "Welcome back", msg: "Whenever you're ready, begin again." });
+      setEncourage(pick(ENCOURAGEMENTS));
+    }
+
+    setTimeout(() => setToast(null), 5200);
+    setTimeout(() => { doneRef.current = false; }, 600);
+  }, [mode, selId]);
+
+  // Countdown interval
+  useEffect(() => {
+    if (status !== "running") return;
+    const iv = setInterval(() => {
+      if (!deadlineRef.current) return;
+      const left = (deadlineRef.current - Date.now()) / 1000;
+      if (left <= 0) { setSecondsLeft(0); complete(); }
+      else setSecondsLeft(left);
+    }, 100);
+    return () => clearInterval(iv);
+  }, [status, complete]);
+
+  // Timer controls
+  const start  = () => { deadlineRef.current = Date.now() + secondsLeft * 1000; setStatus("running"); };
+  const pause  = () => { deadlineRef.current = null; setStatus("paused"); };
+  const resume = () => { deadlineRef.current = Date.now() + secondsLeft * 1000; setStatus("running"); };
+  const reset  = () => {
+    deadlineRef.current = null;
+    setStatus("idle");
+    setSecondsLeft(mode === "break" ? BREAK_SECS : FOCUS_SECS);
+    setEncourage(pick(ENCOURAGEMENTS));
+  };
+
+  // Subject management
+  const addSub = async (name) => {
+    try {
+      const s = await api.addSubject(name);
+      setSubjects(ss => [...ss, s]);
+    } catch {
+      setSubjects(ss => [...ss, { id: Date.now(), name }]);
+    }
+  };
+
+  const delSub = async (id) => {
+    try { await api.delSubject(id); } catch {}
+    setSubjects(ss => ss.filter(s => s.id !== id));
+    if (selId === id) setSelId(null);
+  };
+
+  return (
+    <div className="app">
+      <Sidebar view={view} onNav={setView} streak={streak} />
+
+      <main className="stage">
+        {view === "timer" && (
+          <TimerView
+            mode={mode} status={status} secondsLeft={Math.ceil(secondsLeft)} totalSeconds={total}
+            subjects={subjects} selectedId={selId} encouragement={encourage}
+            onStart={start} onPause={pause} onResume={resume} onReset={reset}
+            onSelect={setSelId} onAdd={addSub} onDelete={delSub}
+          />
+        )}
+        {view === "history" && <HistoryView reloadKey={reloadKey} subjects={subjects} />}
+        {view === "dashboard" && <DashboardView reloadKey={reloadKey} />}
+      </main>
+
+      {toast && (
+        <div className={"toast toast-" + toast.kind} onClick={() => setToast(null)}>
+          <div className="toast-mark">
+            <Icon name={toast.kind === "break" ? "leaf" : "check"} size={20} />
+          </div>
+          <div className="toast-body">
+            <div className="toast-title">{toast.title}</div>
+            <div className="toast-msg">{toast.msg}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

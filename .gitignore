@@ -1,0 +1,5 @@
+focus_timer.db
+__pycache__/
+*.pyc
+.DS_Store
+.env
